@@ -207,7 +207,14 @@ function App() {
                 onDeleteWeek={deleteWeek}
             />
         )}
-        {activeTab === 'teams' && <TeamsView {...commonProps} teams={state.teams} onAddTeam={addTeam} onUpdateTeam={updateTeam} onDeleteTeam={deleteTeam} onOpenTransaction={(id, name) => openNewModal({ type: 'TEAM', id, name })} />}
+        {activeTab === 'teams' && <TeamsView 
+        {...commonProps} 
+        teams={[...state.teams].sort((a, b) => a.name.localeCompare(b.name))} // <--- MUDAR AQUI
+        onAddTeam={addTeam} 
+        onUpdateTeam={updateTeam} 
+        onDeleteTeam={deleteTeam} 
+        onOpenTransaction={(id, name) => openNewModal({ type: 'TEAM', id, name })} 
+/>}
         {activeTab === 'staff' && <StaffView {...commonProps} staff={state.staff} onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} onOpenTransaction={(id, name) => openNewModal({ type: 'STAFF', id, name })} />}
         {activeTab === 'location' && <LocationView {...commonProps} onNewEntry={() => openNewModal({ type: 'COST', id: 'GENERIC', name: 'Aluguel Quadra', category: 'Aluguel Quadra' })} />}
         
