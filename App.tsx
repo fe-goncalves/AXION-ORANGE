@@ -193,9 +193,9 @@ function App() {
         />}
         {activeTab === 'competitions' && (
             <CompetitionsView 
-                competitions={state.competitions} 
-                seasons={state.seasons}
-                weeks={state.weeks}
+                competitions={[...state.competitions].sort((a, b) => a.name.localeCompare(b.name))} // <--- ORDENADO
+                seasons={[state.seasons].sort((a, b) => a.name.localeCompare(b.name))}
+                weeks={[state.weeks].sort((a, b) => a.name.localeCompare(b.name))}
                 onAddComp={addComp} 
                 onUpdateComp={updateComp} 
                 onDeleteComp={deleteComp}
@@ -215,8 +215,15 @@ function App() {
         onDeleteTeam={deleteTeam} 
         onOpenTransaction={(id, name) => openNewModal({ type: 'TEAM', id, name })} 
 />}
-        {activeTab === 'staff' && <StaffView {...commonProps} staff={state.staff} onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} onOpenTransaction={(id, name) => openNewModal({ type: 'STAFF', id, name })} />}
-        {activeTab === 'location' && <LocationView {...commonProps} onNewEntry={() => openNewModal({ type: 'COST', id: 'GENERIC', name: 'Aluguel Quadra', category: 'Aluguel Quadra' })} />}
+        {activeTab === 'staff' && <StaffView {...commonProps} 
+                                    staff={[state.staff].sort((a, b) => a.name.localeCompare(b.name))}
+                                    onAddStaff={addStaff} 
+                                    onUpdateStaff={updateStaff} 
+                                    onDeleteStaff={deleteStaff} 
+                                    onOpenTransaction={(id, name) => openNewModal({ type: 'STAFF', id, name })} />}
+        
+        {activeTab === 'location' && <LocationView {...commonProps} 
+                                       onNewEntry={() => openNewModal({ type: 'COST', id: 'GENERIC', name: 'Aluguel Quadra', category: 'Aluguel Quadra' })} />}
         
         {activeTab === 'costs' && <CostsView {...commonProps} onNewEntry={() => openNewModal({ type: 'EXPENSE', id: 'GENERIC', name: '', category: 'Outros' })} />}
         
@@ -309,9 +316,9 @@ function App() {
     isOpen={isModalOpen} 
     onClose={() => { setIsModalOpen(false); setEditingTransaction(null); setPrefillEntity(undefined); }} 
     onSave={handleSaveTransaction}
-    teams={[...state.teams].sort((a, b) => a.name.localeCompare(b.name))} // <--- MUDAR AQUI TAMBÉM
-    staff={state.staff}
-    competitions={state.competitions}
+    teams={[...state.teams].sort((a, b) => a.name.localeCompare(b.name))} // Já tava aqui
+    staff={[...state.staff].sort((a, b) => a.name.localeCompare(b.name))} // <--- ADD AQUI
+    competitions={[...state.competitions].sort((a, b) => a.name.localeCompare(b.name))} // <--- E AQUI
     seasons={state.seasons}
     weeks={state.weeks}
     initialData={editingTransaction}
