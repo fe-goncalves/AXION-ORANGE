@@ -1,0 +1,5 @@
+{
+  "name": "AXION | Orange",
+  "description": "A comprehensive, offline-capable financial management SPA for the Orange Sports League. Features automated ledger calculations, team/staff management, and dedicated match context handling.",
+  "requestFramePermissions": []
+}

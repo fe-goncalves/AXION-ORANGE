@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orange League Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --toxic-green: #28F587;
+        --deep-black: #000000;
+        --glass-bg: rgba(20, 20, 20, 0.4);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        color-scheme: dark; /* Force browser native controls to dark mode */
+      }
+      
+      body { 
+        font-family: 'Manrope', sans-serif; 
+        background-color: var(--deep-black);
+        color: #FFFFFF;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      
+      /* Toxic Glass Core */
+      .glass-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid var(--glass-border);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+      }
+      
+      .glass-panel:hover {
+        border-color: var(--toxic-green);
+        box-shadow: 0 0 15px -4px rgba(40, 245, 135, 0.15);
+      }
+
+      /* Inputs & Dropdowns */
+      .toxic-input {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        color: white;
+        transition: all 0.2s ease;
+        font-weight: 400;
+      }
+      .toxic-input:focus {
+        border-color: var(--toxic-green);
+        outline: none;
+        box-shadow: 0 0 10px rgba(40, 245, 135, 0.2);
+        background: rgba(40, 245, 135, 0.02);
+      }
+
+      /* Force Options Black Globally */
+      select option {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        padding: 10px;
+      }
+      
+      select {
+        color-scheme: dark;
+      }
+
+      /* Custom Dropdown Trigger Specifics */
+      .toxic-select-trigger {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--toxic-green);
+        color: white;
+        transition: all 0.2s ease;
+      }
+      
+      .toxic-select-menu {
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+      }
+
+      .toxic-option:hover {
+        background-color: rgba(40, 245, 135, 0.15);
+        color: var(--toxic-green);
+      }
+
+      /* Typography Helpers */
+      .label-text {
+        font-weight: 300; /* Light */
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .value-text {
+        font-weight: 500; /* Medium - No Bold */
+      }
+      
+      .menu-text {
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      /* Staggered Animation Keys */
+      @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-stagger { opacity: 0; animation: slideUpFade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+      .stagger-1 { animation-delay: 0.05s; }
+      .stagger-2 { animation-delay: 0.1s; }
+      .stagger-3 { animation-delay: 0.15s; }
+      .stagger-4 { animation-delay: 0.2s; }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: var(--deep-black); }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+      /* Date Picker Invert */
+      input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+        opacity: 0.5;
+      }
+      input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        opacity: 1;
+      }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://esm.sh/react@^19.2.4/",
+        "react": "https://esm.sh/react@^19.2.4",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+        "@phosphor-icons/react": "https://esm.sh/@phosphor-icons/react@2.1.0"
+      }
+    }
+    </script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body class="antialiased selection:bg-[#28F587] selection:text-black">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
