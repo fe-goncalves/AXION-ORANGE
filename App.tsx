@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ICONS, INITIAL_TEAMS, INITIAL_STAFF, INITIAL_COMPETITIONS, INITIAL_SEASONS, INITIAL_WEEKS } from './constants';
 import { AppState, Transaction, Team, StaffMember, Competition, Season, Week } from './types';
 import * as Storage from './services/storage';
@@ -69,6 +69,48 @@ function App() {
   useEffect(() => {
     Storage.saveState(state);
   }, [state]);
+
+  // --- SORTING LOGIC ---
+
+  // 1. Teams: Alphabetical (A-Z)
+  const sortedTeams = useMemo(() => 
+    [...state.teams].sort((a, b) => a.name.localeCompare(b.name)), 
+  [state.teams]);
+
+  // 2. Staff: Alphabetical (A-Z)
+  const sortedStaff = useMemo(() => 
+    [...state.staff].sort((a, b) => a.name.localeCompare(b.name)), 
+  [state.staff]);
+
+  // 3. Seasons: Descending (Newest first, e.g., 2026 II -> 2026 I -> 2025 II)
+  const sortedSeasons = useMemo(() => 
+    [...state.seasons].sort((a, b) => b.name.localeCompare(a.name)), 
+  [state.seasons]);
+
+  // 4. Weeks: Alphanumeric (Week 1 -> Week 2 -> Week 10)
+  const sortedWeeks = useMemo(() => 
+    [...state.weeks].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })), 
+  [state.weeks]);
+
+  // 5. Competitions: Season (Newest) -> Name (A-Z) -> Rounds (Alphanumeric)
+  const sortedCompetitions = useMemo(() => {
+    return [...state.competitions].map(c => ({
+        ...c,
+        // Sort rounds alphanumerically inside the competition
+        rounds: [...c.rounds].sort((r1, r2) => r1.localeCompare(r2, undefined, { numeric: true }))
+    })).sort((a, b) => {
+         const seasonA = state.seasons.find(s => s.id === a.seasonId)?.name || '';
+         const seasonB = state.seasons.find(s => s.id === b.seasonId)?.name || '';
+         
+         // Compare Seasons Descending
+         const seasonDiff = seasonB.localeCompare(seasonA);
+         if (seasonDiff !== 0) return seasonDiff;
+         
+         // Compare Names Ascending
+         return a.name.localeCompare(b.name);
+    });
+  }, [state.competitions, state.seasons]);
+
 
   // Helper to open confirm modal
   const requestConfirm = (message: string, action: () => void) => {
@@ -188,14 +230,14 @@ function App() {
         {activeTab === 'dashboard' && <Dashboard 
             transactions={state.transactions} 
             onNewClick={() => openNewModal()} 
-            teams={state.teams}
-            staff={state.staff}
+            teams={sortedTeams}
+            staff={sortedStaff}
         />}
         {activeTab === 'competitions' && (
             <CompetitionsView 
-                competitions={state.competitions} 
-                seasons={state.seasons}
-                weeks={state.weeks}
+                competitions={sortedCompetitions} 
+                seasons={sortedSeasons}
+                weeks={sortedWeeks}
                 onAddComp={addComp} 
                 onUpdateComp={updateComp} 
                 onDeleteComp={deleteComp}
@@ -207,18 +249,18 @@ function App() {
                 onDeleteWeek={deleteWeek}
             />
         )}
-        {activeTab === 'teams' && <TeamsView {...commonProps} teams={state.teams} onAddTeam={addTeam} onUpdateTeam={updateTeam} onDeleteTeam={deleteTeam} onOpenTransaction={(id, name) => openNewModal({ type: 'TEAM', id, name })} />}
-        {activeTab === 'staff' && <StaffView {...commonProps} staff={state.staff} onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} onOpenTransaction={(id, name) => openNewModal({ type: 'STAFF', id, name })} />}
+        {activeTab === 'teams' && <TeamsView {...commonProps} teams={sortedTeams} onAddTeam={addTeam} onUpdateTeam={updateTeam} onDeleteTeam={deleteTeam} onOpenTransaction={(id, name) => openNewModal({ type: 'TEAM', id, name })} />}
+        {activeTab === 'staff' && <StaffView {...commonProps} staff={sortedStaff} onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} onOpenTransaction={(id, name) => openNewModal({ type: 'STAFF', id, name })} />}
         {activeTab === 'location' && <LocationView {...commonProps} onNewEntry={() => openNewModal({ type: 'COST', id: 'GENERIC', name: 'Aluguel Quadra', category: 'Aluguel Quadra' })} />}
         
         {activeTab === 'costs' && <CostsView {...commonProps} onNewEntry={() => openNewModal({ type: 'EXPENSE', id: 'GENERIC', name: '', category: 'Outros' })} />}
         
         {activeTab === 'ledger' && <LedgerView 
             transactions={state.transactions} 
-            competitions={state.competitions} 
-            teams={state.teams} 
-            seasons={state.seasons}
-            weeks={state.weeks}
+            competitions={sortedCompetitions} 
+            teams={sortedTeams} 
+            seasons={sortedSeasons}
+            weeks={sortedWeeks}
             onDelete={deleteTransaction} 
             onEdit={openEditModal} 
         />}
@@ -302,11 +344,11 @@ function App() {
         isOpen={isModalOpen} 
         onClose={() => { setIsModalOpen(false); setEditingTransaction(null); setPrefillEntity(undefined); }} 
         onSave={handleSaveTransaction}
-        teams={state.teams}
-        staff={state.staff}
-        competitions={state.competitions}
-        seasons={state.seasons}
-        weeks={state.weeks}
+        teams={sortedTeams}
+        staff={sortedStaff}
+        competitions={sortedCompetitions}
+        seasons={sortedSeasons}
+        weeks={sortedWeeks}
         initialData={editingTransaction}
         prefillEntity={prefillEntity}
       />
