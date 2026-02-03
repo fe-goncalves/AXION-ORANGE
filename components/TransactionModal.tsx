@@ -321,8 +321,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
         <form onSubmit={handleSubmit} className="p-8 space-y-8 flex-1 overflow-y-auto">
           
-          {/* Row 1: Type & Date */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Row 1: Type & Date - z-index 30 for safety */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-30">
             <div className="flex bg-black p-1.5 rounded-xl border border-white/5">
               <button
                 type="button"
@@ -351,8 +351,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Entity Selection */}
-          <div className="glass-panel p-6 rounded-xl border border-white/5 space-y-4">
+          {/* Row 2: Entity Selection - z-index 20 to be above Row 3 */}
+          <div className="glass-panel p-6 rounded-xl border border-white/5 space-y-4 relative z-20">
              <div className="flex flex-wrap gap-2">
                  {[
                      {id: 'TEAM', label: 'Team'}, 
@@ -453,8 +453,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
              )}
           </div>
 
-          {/* Row 3: Context / Competition */}
-          <div className="glass-panel p-6 rounded-xl border border-white/5 space-y-4">
+          {/* Row 3: Context / Competition - z-index 10 to be above Row 4 */}
+          <div className="glass-panel p-6 rounded-xl border border-white/5 space-y-4 relative z-10">
              <div className="flex justify-between items-center mb-2">
                 <h3 className="text-xs font-medium text-gray-300 label-text flex items-center gap-2">
                    <ICONS.Trophy size={16} className="text-[#28F587]" /> Contexto do Evento
@@ -525,7 +525,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
 
           {/* Court Calculation Logic */}
           {category === 'Aluguel Quadra' && (
-             <div className="bg-[#28F587]/10 border border-[#28F587]/20 p-6 rounded-xl flex items-center justify-between">
+             <div className="bg-[#28F587]/10 border border-[#28F587]/20 p-6 rounded-xl flex items-center justify-between relative z-0">
                 <div>
                   <label className="text-[10px] text-[#28F587] label-text mb-2 block">Cálculo de horas</label>
                   <div className="flex items-center gap-2">
@@ -549,8 +549,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
              </div>
           )}
 
-          {/* Row 4: Financials */}
-          <div className="bg-black/40 rounded-2xl p-6 border border-white/5">
+          {/* Row 4: Financials - z-index 0 */}
+          <div className="bg-black/40 rounded-2xl p-6 border border-white/5 relative z-0">
              <div className="flex justify-between items-center mb-6">
                  <h3 className="text-xs font-medium text-gray-300 label-text flex items-center gap-2">
                      <ICONS.Money size={16} className="text-[#28F587]" /> Financeiro
@@ -591,7 +591,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
              </div>
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-4 pt-4 relative z-0">
              <button type="button" onClick={onClose} className="flex-1 py-4 bg-transparent border border-white/10 hover:border-white/30 text-white rounded-xl label-text text-xs transition-colors">Cancelar</button>
              <button type="submit" className="flex-1 py-4 bg-[#28F587] text-black rounded-xl label-text shadow-[0_0_15px_rgba(40,245,135,0.2)] transition-transform hover:scale-[1.02] text-xs">
                 {initialData ? 'Salvar alterações' : 'Confirmar'}
