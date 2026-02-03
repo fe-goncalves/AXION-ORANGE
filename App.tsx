@@ -305,18 +305,18 @@ function App() {
         </div>
       </main>
 
-      <TransactionModal 
-        isOpen={isModalOpen} 
-        onClose={() => { setIsModalOpen(false); setEditingTransaction(null); setPrefillEntity(undefined); }} 
-        onSave={handleSaveTransaction}
-        teams={state.teams}
-        staff={state.staff}
-        competitions={state.competitions}
-        seasons={state.seasons}
-        weeks={state.weeks}
-        initialData={editingTransaction}
-        prefillEntity={prefillEntity}
-      />
+<TransactionModal 
+    isOpen={isModalOpen} 
+    onClose={() => { setIsModalOpen(false); setEditingTransaction(null); setPrefillEntity(undefined); }} 
+    onSave={handleSaveTransaction}
+    teams={[...state.teams].sort((a, b) => a.name.localeCompare(b.name))} // <--- MUDAR AQUI TAMBÉM
+    staff={state.staff}
+    competitions={state.competitions}
+    seasons={state.seasons}
+    weeks={state.weeks}
+    initialData={editingTransaction}
+    prefillEntity={prefillEntity}
+/>
       
       <ConfirmModal 
         isOpen={confirmConfig.isOpen}
