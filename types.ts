@@ -1,6 +1,6 @@
 
 export type TransactionType = 'INCOME' | 'EXPENSE';
-export type TransactionStatus = 'PENDING' | 'PARTIAL' | 'PAID';
+export type TransactionStatus = 'PENDING' | 'PARTIAL' | 'PAID' | 'EXCEDENTE';
 
 // Categories updated based on new requirements
 export type Category = 
