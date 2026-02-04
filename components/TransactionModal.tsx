@@ -155,44 +155,49 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
         }
 
       } else {
-        resetForm();
+        // New Entry Logic: Consolidated Reset & Prefill
+        setType('INCOME');
+        
+        const today = new Date();
+        const d = String(today.getDate()).padStart(2, '0');
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const y = String(today.getFullYear()).slice(2);
+        setDisplayDate(`${d}/${m}/${y}`);
+
+        // Resolve Initial Entity State
+        let initType: any = 'TEAM';
+        let initId = '';
+        let initCustom = '';
+        let initCat = '';
+
         if (prefillEntity) {
-          setEntityType(prefillEntity.type as any);
-          setEntityId(prefillEntity.id);
-          if (prefillEntity.name) setCustomEntity(prefillEntity.name);
-          if (prefillEntity.category) setCategory(prefillEntity.category);
-          
-          if (prefillEntity.type === 'COST' && !prefillEntity.category) {
-             setCategory(CATEGORY_GROUPS.COST[0]);
-          }
+            initType = prefillEntity.type;
+            initId = prefillEntity.id;
+            initCustom = prefillEntity.name || '';
+            initCat = prefillEntity.category || '';
+            
+            if (initType === 'COST' && !initCat) {
+                initCat = CATEGORY_GROUPS.COST[0];
+            }
         }
+
+        setEntityType(initType);
+        setEntityId(initId);
+        setCustomEntity(initCustom);
+        setCategory(initCat);
+
+        // Reset other fields
+        setWeekId('');
+        setCompetitionId('');
+        setRound('');
+        setDescription('');
+        setMatchesWorked(0);
+        setAmountDueStr('0,00');
+        setAmountPaidStr('0,00');
+        setCourtHours(1);
       }
     }
   }, [initialData, isOpen, prefillEntity]);
-
-  const resetForm = () => {
-    setType('INCOME');
-    
-    // Set today as DD/MM/YY
-    const today = new Date();
-    const d = String(today.getDate()).padStart(2, '0');
-    const m = String(today.getMonth() + 1).padStart(2, '0');
-    const y = String(today.getFullYear()).slice(2);
-    setDisplayDate(`${d}/${m}/${y}`);
-
-    setEntityType('TEAM');
-    setEntityId('');
-    setCustomEntity('');
-    setCategory('');
-    setWeekId('');
-    setCompetitionId('');
-    setRound('');
-    setDescription('');
-    setMatchesWorked(0);
-    setAmountDueStr('0,00');
-    setAmountPaidStr('0,00');
-    setCourtHours(1);
-  };
 
   const handleDateChange = (val: string) => {
     // Mask DD/MM/AA
@@ -229,6 +234,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   }, [amountDueStr, amountPaidStr]);
 
   useEffect(() => {
+    // Only set default category if we are starting fresh (no initial data) and no prefill category was provided
     if (!initialData && isOpen && !prefillEntity?.category) {
         if (entityType === 'TEAM') setCategory(CATEGORY_GROUPS.TEAM[0]);
         if (entityType === 'STAFF') setCategory(CATEGORY_GROUPS.STAFF[0]);
