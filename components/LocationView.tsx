@@ -40,8 +40,9 @@ const LocationView: React.FC<LocationViewProps> = ({ transactions, competitions 
   const totalPaid = courtTransactions.reduce((acc, t) => acc + t.amountPaid, 0);
   const totalHours = totalDue / COURT_HOURLY_RATE;
 
-  // Logic Update: Balance is simply Total Paid - Total Due (Contracted).
-  // This allows for negative balances (Debt) or positive balances (Credit/Surplus).
+  // Logic: Balance is simply Total Paid - Total Due (Contracted).
+  // If Paid < Due, this is negative (Debt/A Pagar on location specific view).
+  // If Paid > Due, this is positive (Credit/Surplus).
   const locationSurplus = totalPaid - totalDue;
 
   return (

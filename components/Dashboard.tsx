@@ -39,23 +39,23 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onNewClick }) => {
       const paid = t.amountPaid;
 
       if (t.type === 'INCOME') {
-        // Logic Adjustment:
-        // If Paid > Due: Balance contribution is (Paid - Due) "Surplus".
-        // Else: Balance contribution is Paid.
-        if (paid > due) {
-            balance += (paid - due);
-        } else {
-            balance += paid;
-        }
+        // CORRECTION: General Balance must reflect actual Cash Flow (Ledger Logic).
+        // "Valores excedentes em entradas devem aparecer integralmente no SALDO GERAL"
+        // We sum the full Amount Paid, regardless if it's partial, exact, or excess.
+        balance += paid;
         
-        // Receivables: Floor at 0 (Don't let overpayments reduce total receivables)
+        // Receivables: Only what is left to receive. Floor at 0 (Excess payments don't reduce total receivables below 0)
         receivables += Math.max(0, due - paid);
       } else {
-        // EXPENSE
-        // Logic Adjustment: Expense decreases balance by paid amount.
+        // EXPENSE (Including 'Aluguel Quadra')
+        
+        // CORRECTION: General Balance subtracts the actual money that left the wallet.
         balance -= paid;
         
-        // Payables: Floor at 0 (Don't let overpayments reduce total payables)
+        // Payables Logic (A PAGAR):
+        // 1. PENDENTE (Paid <= 0): Adds full 'due'.
+        // 2. PARCIAL (Paid < Due): Adds remainder (due - paid).
+        // 3. PAGO/EXCEDENTE (Paid >= Due): Adds 0.
         payables += Math.max(0, due - paid);
       }
     });
@@ -99,7 +99,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onNewClick }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <StatCard 
-          label="Saldo Disponível" 
+          label="SALDO GERAL" 
           value={stats.balance} 
           trendColor={stats.balance >= 0 ? "text-white" : "text-red-400"} 
           icon={ICONS.Money}
@@ -172,8 +172,9 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onNewClick }) => {
                        </p>
                        <span className={`text-[9px] px-2 py-0.5 rounded font-medium uppercase tracking-widest mt-1 inline-block ${
                          t.status === 'PAID' ? 'text-black bg-[#28F587]' : 
+                         t.status === 'EXCEDENTE' ? 'text-black bg-cyan-400' :
                          t.status === 'PARTIAL' ? 'text-black bg-red-400' : 'text-black bg-white'
-                       }`}>{t.status === 'PARTIAL' ? 'Parcial' : t.status === 'PAID' ? 'Pago' : 'Pendente'}</span>
+                       }`}>{t.status === 'PARTIAL' ? 'Parcial' : t.status === 'PAID' ? 'Pago' : t.status === 'EXCEDENTE' ? 'Excedente' : 'Pendente'}</span>
                     </div>
                  </div>
                ))
