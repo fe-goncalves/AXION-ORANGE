@@ -1,28 +1,48 @@
 import React, { useState, useMemo } from 'react';
-import { Transaction } from '../types';
+import { Transaction, Competition, Week } from '../types';
 import { ICONS, COURT_HOURLY_RATE } from '../constants';
 import { formatCurrency, formatDateDisplay, formatHours } from '../utils';
 import CountUp from './CountUp';
 
 interface LocationViewProps {
   transactions: Transaction[];
+  competitions?: Competition[];
+  weeks?: Week[];
   onNewEntry: () => void;
   onEditTransaction: (t: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
 }
 
-const LocationView: React.FC<LocationViewProps> = ({ transactions, onNewEntry, onEditTransaction, onDeleteTransaction }) => {
+const LocationView: React.FC<LocationViewProps> = ({ transactions, competitions = [], weeks = [], onNewEntry, onEditTransaction, onDeleteTransaction }) => {
   const [filterMonth, setFilterMonth] = useState('');
+  const [filterComp, setFilterComp] = useState('');
+  const [filterWeek, setFilterWeek] = useState('');
+  const [filterMatchday, setFilterMatchday] = useState('');
+
+  const availableRounds = useMemo(() => {
+    const rounds = new Set<string>();
+    transactions.forEach(t => { if(t.round && t.category === 'Aluguel Quadra') rounds.add(t.round); });
+    return Array.from(rounds).sort();
+  }, [transactions]);
 
   const courtTransactions = useMemo(() => {
      let data = transactions.filter(t => t.entityType === 'COST' && t.category === 'Aluguel Quadra');
+     
      if (filterMonth) data = data.filter(t => t.date.startsWith(filterMonth));
+     if (filterComp) data = data.filter(t => t.competitionId === filterComp);
+     if (filterWeek) data = data.filter(t => t.weekId === filterWeek);
+     if (filterMatchday) data = data.filter(t => t.round === filterMatchday);
+     
      return data.sort((a,b) => b.date.localeCompare(a.date));
-  }, [transactions, filterMonth]);
+  }, [transactions, filterMonth, filterComp, filterWeek, filterMatchday]);
   
   const totalDue = courtTransactions.reduce((acc, t) => acc + t.amountDue, 0);
   const totalPaid = courtTransactions.reduce((acc, t) => acc + t.amountPaid, 0);
   const totalHours = totalDue / COURT_HOURLY_RATE;
+
+  // Logic Update: Balance is simply Total Paid - Total Due (Contracted).
+  // This allows for negative balances (Debt) or positive balances (Credit/Surplus).
+  const locationSurplus = totalPaid - totalDue;
 
   return (
     <div className="space-y-12 animate-stagger">
@@ -36,36 +56,59 @@ const LocationView: React.FC<LocationViewProps> = ({ transactions, onNewEntry, o
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="glass-panel p-8 rounded-2xl relative overflow-hidden group">
              <div className="absolute -right-5 -top-5 p-4 opacity-20 group-hover:opacity-40 transition-opacity"><ICONS.Location size={100} className="text-[#28F587]" weight="thin" /></div>
              <h3 className="text-[#28F587] label-text text-[10px] mb-2">Contracted Total</h3>
-             <p className="text-4xl value-text text-white tracking-tighter font-mono">
+             <p className="text-3xl value-text text-white tracking-tighter font-mono">
                 <CountUp end={totalDue} prefix="R$" />
              </p>
           </div>
           <div className="glass-panel p-8 rounded-2xl">
              <h3 className="text-gray-500 label-text text-[10px] mb-2">Paid Total</h3>
-             <p className="text-4xl value-text text-[#28F587] tracking-tighter font-mono">
+             <p className="text-3xl value-text text-[#28F587] tracking-tighter font-mono">
                 <CountUp end={totalPaid} prefix="R$" />
              </p>
           </div>
           <div className="glass-panel p-8 rounded-2xl">
              <h3 className="text-gray-500 label-text text-[10px] mb-2">Hours (Est. R${COURT_HOURLY_RATE}/h)</h3>
-             <p className="text-4xl value-text text-white tracking-tighter font-mono">
+             <p className="text-3xl value-text text-white tracking-tighter font-mono">
                 {formatHours(totalHours)}
              </p>
+          </div>
+          <div className={`glass-panel p-8 rounded-2xl border-l-2 ${locationSurplus >= 0 ? 'border-l-cyan-400' : 'border-l-red-500'}`}>
+             <h3 className={`${locationSurplus >= 0 ? 'text-cyan-400' : 'text-red-500'} label-text text-[10px] mb-2`}>Saldo / Crédito</h3>
+             <p className="text-3xl value-text text-white tracking-tighter font-mono">
+                <CountUp end={locationSurplus} prefix="R$" />
+             </p>
+             <p className="text-[9px] text-gray-500 mt-1">Balanço Geral</p>
           </div>
       </div>
 
       <div className="glass-panel rounded-2xl overflow-hidden shadow-2xl">
-        <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-            <h3 className="value-text text-lg text-white tracking-tight">Rental History</h3>
+        <div className="p-6 border-b border-white/5 flex flex-wrap items-center gap-4 bg-white/[0.01]">
+            <h3 className="value-text text-lg text-white tracking-tight mr-auto">Rental History</h3>
+            
+            <select value={filterComp} onChange={e => setFilterComp(e.target.value)} className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-medium outline-none focus:border-[#28F587] appearance-none">
+                <option value="" className="bg-black text-white">Todas Ligas</option>
+                {competitions.map(c => <option key={c.id} value={c.id} className="bg-black text-white">{c.name}</option>)}
+            </select>
+
+            <select value={filterWeek} onChange={e => setFilterWeek(e.target.value)} className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-medium outline-none focus:border-[#28F587] appearance-none">
+                <option value="" className="bg-black text-white">Todas Weeks</option>
+                {weeks.map(w => <option key={w.id} value={w.id} className="bg-black text-white">{w.name}</option>)}
+            </select>
+            
+            <select value={filterMatchday} onChange={e => setFilterMatchday(e.target.value)} className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white font-medium outline-none focus:border-[#28F587] appearance-none">
+                <option value="" className="bg-black text-white">Todas Rodadas</option>
+                {availableRounds.map(r => <option key={r} value={r} className="bg-black text-white">{r}</option>)}
+            </select>
+
             <input 
                 type="month" 
                 value={filterMonth} 
                 onChange={e => setFilterMonth(e.target.value)} 
-                className="toxic-input rounded-lg px-4 py-2 text-xs font-medium outline-none"
+                className="toxic-input rounded-lg px-4 py-1.5 text-xs font-medium outline-none"
             />
         </div>
         <div className="overflow-x-auto">
@@ -90,8 +133,9 @@ const LocationView: React.FC<LocationViewProps> = ({ transactions, onNewEntry, o
                             <td className="px-8 py-4">
                                 <span className={`px-2 py-0.5 rounded text-[10px] label-text ${
                                    t.status === 'PAID' ? 'text-black bg-[#28F587]' : 
+                                   t.status === 'EXCEDENTE' ? 'text-black bg-cyan-400' : 
                                    t.status === 'PARTIAL' ? 'text-black bg-red-400' : 'text-black bg-white'
-                                }`}>{t.status === 'PAID' ? 'Pago' : 'Pendente'}</span>
+                                }`}>{t.status === 'PAID' ? 'Pago' : t.status === 'EXCEDENTE' ? 'Excedente' : t.status === 'PARTIAL' ? 'Parcial' : 'Pendente'}</span>
                             </td>
                             <td className="px-8 py-4 text-right text-gray-400 font-mono">{formatCurrency(t.amountDue)}</td>
                             <td className="px-8 py-4 text-right text-white font-medium font-mono">{formatCurrency(t.amountPaid)}</td>
