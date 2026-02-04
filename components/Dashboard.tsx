@@ -35,23 +35,41 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onNewClick }) => {
     let payables = 0;
 
     transactions.forEach(t => {
+      const due = t.amountDue;
+      const paid = t.amountPaid;
+
       if (t.type === 'INCOME') {
-        balance += t.amountPaid;
-        receivables += (t.amountDue - t.amountPaid);
+        // Logic Adjustment:
+        // If Paid > Due: Balance contribution is (Paid - Due) "Surplus".
+        // Else: Balance contribution is Paid.
+        if (paid > due) {
+            balance += (paid - due);
+        } else {
+            balance += paid;
+        }
+        
+        // Receivables: Floor at 0 (Don't let overpayments reduce total receivables)
+        receivables += Math.max(0, due - paid);
       } else {
-        balance -= t.amountPaid;
-        payables += (t.amountDue - t.amountPaid);
+        // EXPENSE
+        // Logic Adjustment: Expense decreases balance by paid amount.
+        balance -= paid;
+        
+        // Payables: Floor at 0 (Don't let overpayments reduce total payables)
+        payables += Math.max(0, due - paid);
       }
     });
 
     // Panoramas logic
     // Teams: Income - Expenses (usually fees paid by teams)
     const teamsIncome = transactions.filter(t => t.entityType === 'TEAM' && t.type === 'INCOME').reduce((acc, t) => acc + t.amountPaid, 0);
-    const teamsReceivable = transactions.filter(t => t.entityType === 'TEAM' && t.type === 'INCOME').reduce((acc, t) => acc + (t.amountDue - t.amountPaid), 0);
+    // Fix: Floor receivables at 0
+    const teamsReceivable = transactions.filter(t => t.entityType === 'TEAM' && t.type === 'INCOME').reduce((acc, t) => acc + Math.max(0, t.amountDue - t.amountPaid), 0);
     
     // Staff: Expenses paid to staff
     const staffPaid = transactions.filter(t => t.entityType === 'STAFF').reduce((acc, t) => acc + t.amountPaid, 0);
-    const staffDue = transactions.filter(t => t.entityType === 'STAFF').reduce((acc, t) => acc + (t.amountDue - t.amountPaid), 0);
+    // Fix: Floor due at 0
+    const staffDue = transactions.filter(t => t.entityType === 'STAFF').reduce((acc, t) => acc + Math.max(0, t.amountDue - t.amountPaid), 0);
 
     // Location: Rent paid
     const locationPaid = transactions.filter(t => t.category === 'Aluguel Quadra').reduce((acc, t) => acc + t.amountPaid, 0);
