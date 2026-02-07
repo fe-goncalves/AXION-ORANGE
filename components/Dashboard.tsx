@@ -34,31 +34,48 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onNewClick }) => {
     let receivables = 0;
     let payables = 0;
 
+    // Aux variables to calculate Location Aggregate Logic
+    let locationTotalPaid = 0;
+    let locationTotalDue = 0;
+
     transactions.forEach(t => {
       const due = t.amountDue;
       const paid = t.amountPaid;
 
       if (t.type === 'INCOME') {
-        // CORRECTION: General Balance must reflect actual Cash Flow (Ledger Logic).
-        // "Valores excedentes em entradas devem aparecer integralmente no SALDO GERAL"
-        // We sum the full Amount Paid, regardless if it's partial, exact, or excess.
+        // Income Logic: Full Cash Flow (Total Paid) adds to Balance
         balance += paid;
         
-        // Receivables: Only what is left to receive. Floor at 0 (Excess payments don't reduce total receivables below 0)
+        // Receivables: Only what is left to receive. Floor at 0.
         receivables += Math.max(0, due - paid);
       } else {
-        // EXPENSE (Including 'Aluguel Quadra')
+        // EXPENSE
         
-        // CORRECTION: General Balance subtracts the actual money that left the wallet.
+        // Balance Logic: Full Cash Flow (Total Paid) subtracts from Balance
         balance -= paid;
         
-        // Payables Logic (A PAGAR):
-        // 1. PENDENTE (Paid <= 0): Adds full 'due'.
-        // 2. PARCIAL (Paid < Due): Adds remainder (due - paid).
-        // 3. PAGO/EXCEDENTE (Paid >= Due): Adds 0.
-        payables += Math.max(0, due - paid);
+        if (t.category === 'Aluguel Quadra') {
+            // LOCATION LOGIC UPDATE:
+            // "Valores a pagar de movimentações de saída sobre aluguel de quadra não devem entrar em nenhuma soma do dashboard principal"
+            // We accumulate them separately to check the GLOBAL Location Balance later.
+            locationTotalPaid += paid;
+            locationTotalDue += due;
+        } else {
+            // Standard Payables Logic for other expenses (Staff, Equipment, etc)
+            payables += Math.max(0, due - paid);
+        }
       }
     });
+
+    // APPLY LOCATION LOGIC TO PAYABLES:
+    // "Apenas deve participar do 'SALDO A PAGAR' os valores (em negativo) da soma de 'SALDO/CRÉDITO' de LOCAL."
+    const locationSurplus = locationTotalPaid - locationTotalDue;
+    
+    // If Surplus is Negative (We owe money overall for location), add the absolute value to Payables.
+    // If Positive, it is ignored in the main dashboard sums.
+    if (locationSurplus < 0) {
+        payables += Math.abs(locationSurplus);
+    }
 
     // Panoramas logic
     // Teams: Income - Expenses (usually fees paid by teams)
@@ -71,7 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, onNewClick }) => {
     // Fix: Floor due at 0
     const staffDue = transactions.filter(t => t.entityType === 'STAFF').reduce((acc, t) => acc + Math.max(0, t.amountDue - t.amountPaid), 0);
 
-    // Location: Rent paid
+    // Location: Rent paid (For Panorama display only)
     const locationPaid = transactions.filter(t => t.category === 'Aluguel Quadra').reduce((acc, t) => acc + t.amountPaid, 0);
     
     // General Costs
